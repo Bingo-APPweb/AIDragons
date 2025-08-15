@@ -1,0 +1,28 @@
+# Configuração de modelos de issue
+blank_issues_enabled: false
+
+# Links de contato para diferentes tipos de suporte
+contact_links:
+  # Suporte da comunidade
+  - name: "💬 Perguntas & Suporte (Discussions)"
+    url: https://github.com/bbf-tables/bbf-tables/discussions
+    about: "Tire dúvidas e peça orientação de uso na comunidade"
+  
+  # Segurança
+  - name: "🔐 Reportar vulnerabilidade (privado)"
+    url: https://github.com/bbf-tables/.github/security/advisories/new
+    about: "Reporte vulnerabilidades de segurança (resposta em até 72h)"
+  
+  # Documentação
+  - name: "📚 Documentação do projeto"
+    url: https://github.com/bbf-tables/bbf-tables#readme
+    about: "Acesse a documentação completa do projeto"
+
+  # Roadmap
+  - name: "🗺️ Roadmap e planejamento"
+    url: https://github.com/orgs/bbf-tables/projects/1
+    about: "Acompanhe o planejamento e próximos passos"
+
+# Configurações adicionais
+# - Para adicionar templates personalizados, crie arquivos .md na pasta .github/ISSUE_TEMPLATE/
+# - Nomes de arquivos devem seguir o padrão: nome-do-template.yml

@@ -1,0 +1,16 @@
+codecov:
+  require_ci_to_pass: true
+comment:
+  layout: "diff, flags, files"
+  behavior: default
+  require_changes: true
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 0.5%   # tolerância mínima
+    patch:
+      default:
+        target: 80%
+        threshold: 1%

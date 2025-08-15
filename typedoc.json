@@ -1,0 +1,23 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/index.ts"],
+  "out": "docs",
+  "excludeExternals": true,
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "categorizeByGroup": false,
+  "cleanOutputDir": true,
+  "includeVersion": true,
+  "exclude": [
+    "**/node_modules/**",
+    "**/tests/**",
+    "**/dist/**"
+  ],
+  "theme": "default",
+  "name": "Natural Prediction System",
+  "readme": "README.md",
+  "includeVersion": true,
+  "excludeExternals": true,
+  "excludePrivate": true,
+  "excludeProtected": true
+}

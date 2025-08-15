@@ -1,0 +1,19 @@
+name: 🚨 Incidente (P0/P1)
+description: Resposta a incidente de produção/segurança
+labels: [incident]
+body:
+  - type: dropdown
+    id: sev
+    attributes: { label: Severidade, options: [P0, P1], required: true }
+  - type: textarea
+    id: impact
+    attributes: { label: Impacto, description: Quem/quanto foi afetado? }
+  - type: textarea
+    id: timeline
+    attributes: { label: Linha do tempo, description: Eventos com horário (CET) }
+  - type: textarea
+    id: actions
+    attributes: { label: Mitigações/Workarounds }
+  - type: textarea
+    id: rollback
+    attributes: { label: Reversão, description: Passos conforme RELEASE_ROLLBACK.md }

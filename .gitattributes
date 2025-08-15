@@ -1,0 +1,142 @@
+# Core line ending configuration
+* text=auto eol=lf
+
+# Windows scripts (CRLF)
+*.{cmd,[cC][mM][dD]} text eol=crlf
+*.{bat,[bB][aA][tT]} text eol=crlf
+
+# Unix scripts (LF)
+*.sh text eol=lf
+*.ps1 text eol=lf
+
+# Force binary for binary files
+*.{png,jpg,jpeg,gif,ico,pdf,woff,woff2,eot,ttf,otf,svg} binary
+*.{zip,jar,war,ear,7z,rar,gz,mp3,mp4,mov,avi,webm} binary
+*.{exe,dll,so,dylib} binary
+
+# Text files with specific handling
+*.css text diff=css
+*.html text diff=html
+*.js text diff=javascript
+*.jsx text diff=jsx
+*.json text diff=json
+*.md text diff=markdown
+*.ts text diff=typescript
+*.tsx text diff=tsx
+*.xml text diff=xml
+*.yml text diff=yaml
+*.yaml text diff=yaml
+*.lock binary
+
+# Documentation
+*.adoc text
+*.rst text
+*.txt text
+
+# Configuration files
+.editorconfig text
+.gitattributes text
+.gitignore text
+.gitmodules text
+*.gitconfig text
+*.gitkeep text
+
+# Build files
+Makefile text
+*.mk text
+*.mkd text
+*.mkdn text
+*.mkdown text
+*.markdown text
+
+# Source files
+*.c text diff=c
+*.cc text diff=cpp
+*.cpp text diff=cpp
+*.h text diff=c
+*.hpp text diff=cpp
+*.m text diff=objc
+*.mm text diff=objc
+*.py text diff=python
+*.rb text diff=ruby
+*.go text diff=go
+*.java text diff=java
+*.php text diff=php
+*.pl text diff=perl
+*.pm text diff=perl
+*.sql text diff=sql
+
+# Docker and container files
+Dockerfile* text
+docker-compose*.yml text
+docker-compose*.yaml text
+*.dockerignore text
+
+# CI/CD files
+.gitlab-ci.yml text
+.travis.yml text
+circle.yml text
+appveyor.yml text
+azure-pipelines.yml text
+
+# Lock files (treat as binary to avoid merge conflicts)
+package-lock.json binary
+yarn.lock binary
+pnpm-lock.yaml binary
+
+# Environment files
+.env* text eol=lf
+*.env text eol=lf
+
+# Special files
+LICENSE* text
+CHANGELOG* text
+AUTHORS* text
+CONTRIBUTING* text
+README* text
+
+# Ignore permissions
+* -text
+* text=auto
+* text eol=lf
+*.{cmd,[cC][mM][dD]} text eol=crlf
+*.{bat,[bB][aA][tT]} text eol=crlf
+*.{sh} text eol=lf
+*.{ps1} text eol=lf
+*.{psm1} text eol=lf
+*.{psd1} text eol=lf
+*.{ps1xml} text eol=lf
+*.{psc1} text eol=lf
+*.{psc2} text eol=lf
+*.{cdxml} text eol=lf
+*.{ps1xml} text eol=lf
+*.{clixml} text eol=lf
+*.{psc1} text eol=lf
+*.{ps1d} text eol=lf
+*.{ps1disco} text eol=lf
+*.{ps1m} text eol=lf
+*.{ps1proj} text eol=lf
+*.{ps1s} text eol=lf
+*.{ps1src} text eol=lf
+*.{ps1xml} text eol=lf
+*.{psc1} text eol=lf
+*.{psd1} text eol=lf
+*.{psm1} text eol=lf
+*.{pssc} text eol=lf
+*.{pst} text eol=lf
+*.{ps1xml} text eol=lf
+*.{ps1} text eol=lf
+*.{ps1xml} text eol=lf
+*.{psc1} text eol=lf
+*.{psd1} text eol=lf
+*.{psm1} text eol=lf
+*.{pssc} text eol=lf
+*.{pst} text eol=lf
+*.{ps1xml} text eol=lf
+*.{ps1} text eol=lf
+*.{ps1xml} text eol=lf
+*.{psc1} text eol=lf
+*.{psd1} text eol=lf
+*.{psm1} text eol=lf
+*.{pssc} text eol=lf
+*.{pst} text eol=lf

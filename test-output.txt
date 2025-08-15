@@ -1,0 +1,8 @@
+No tests found, exiting with code 1
+Run with `--passWithNoTests` to exit with code 0
+In C:\Users\jobs\projects\BBF-Tables
+  57 files checked.
+  testMatch: **/tests/**/*.test.ts - 7 matches
+  testPathIgnorePatterns: \\node_modules\\ - 57 matches
+  testRegex:  - 0 matches
+Pattern: simple-test.js - 0 matches

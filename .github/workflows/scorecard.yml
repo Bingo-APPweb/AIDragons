@@ -1,0 +1,100 @@
+name: Scorecard
+
+on:
+  branch_protection_rule:
+  schedule: [{ cron: "0 6 * * 1" }]  # Weekly on Monday at 06:00
+  push: { branches: [ "main" ] }
+  workflow_dispatch:
+
+permissions:
+  id-token: write  # Needed for GitHub OIDC
+  security-events: write  # For uploading results
+  actions: read
+  contents: read
+
+jobs:
+  analysis:
+    name: Scorecard Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab  # v4.1.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Run analysis
+        uses: ossf/scorecard-action@d9f6f3577c2f9a0fe84b0b159fc5189d72caf5e8  # v2.3.1
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_results: true
+          # Enable additional checks (see https://github.com/ossf/scorecard#scorecard-checks)
+          # checks: token-permissions,dangerous-workflow,code-review,maintained,contributors
+
+      - name: Upload results
+        uses: github/codeql-action/upload-sarif@2e2f4eacd62398f3459512872681a6d2a76991d2  # v3.24.5
+        with:
+          sarif_file: results.sarif
+          category: "open-ssf-scorecard"
+
+      # Add a comment to PRs with the scorecard results
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@60a0d83039c969a640f016bbd8fe55002fb489e9  # v7.0.1
+        with:
+          script: |
+            const fs = require('fs');
+            const { execSync } = require('child_process');
+            
+            // Get the scorecard results
+            const results = JSON.parse(fs.readFileSync('results.sarif', 'utf8'));
+            const checks = results.runs[0].results || [];
+            
+            // Format results as a markdown table
+            let table = '## 🔍 OpenSSF Scorecard Results\n\n';
+            table += '| Check | Score | Details |\n|-------|-------|---------|\n';
+            
+            checks.forEach(check => {
+              const level = check.level || 'none';
+              const score = check.properties?.score || 'N/A';
+              const details = check.message.text || '';
+              const emoji = level === 'error' ? '❌' : level === 'warning' ? '⚠️' : '✅';
+              
+              table += `| ${emoji} ${check.ruleId} | ${score} | ${details.replace(/\n/g, '<br>')} |\n`;
+            });
+            
+            // Add link to full results
+            table += '\n[View full results](https://securityscorecards.dev/viewer/?uri=' + 
+                     process.env.GITHUB_REPOSITORY + '@' + process.env.GITHUB_REF_NAME + ')';
+            
+            // Create or update comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.login === 'github-actions[bot]' && 
+              comment.body.includes('OpenSSF Scorecard Results')
+            );
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: table
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: table
+              });
+            }
