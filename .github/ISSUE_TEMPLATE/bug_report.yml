@@ -1,0 +1,20 @@
+name: Bug report
+description: Reporte um problema
+labels: [bug]
+body:
+  - type: textarea
+    id: desc
+    attributes: { label: Descrição, description: O que aconteceu? }
+    validations: { required: true }
+  - type: input
+    id: version
+    attributes: { label: Versão, placeholder: "e.g. 1.2.3" }
+  - type: dropdown
+    id: node
+    attributes: { label: Node, options: ["18", "20", "22"] }
+  - type: textarea
+    id: repro
+    attributes: { label: Repro, description: Passos/minimal repo }
+  - type: textarea
+    id: logs
+    attributes: { label: Logs, render: shell }

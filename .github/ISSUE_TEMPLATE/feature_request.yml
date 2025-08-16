@@ -1,0 +1,11 @@
+name: Feature request
+description: Sugira uma melhoria
+labels: [enhancement]
+body:
+  - type: textarea
+    id: value
+    attributes: { label: Valor, description: O que melhora e por quê? }
+    validations: { required: true }
+  - type: textarea
+    id: proposal
+    attributes: { label: Proposta, description: API/CLI/config esperada }

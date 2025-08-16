@@ -1,0 +1,58 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "timezone": "Europe/Berlin",
+  "schedule": ["before 7am on monday"],
+  "packageRules": [
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions",
+      "automerge": true,
+      "addLabels": ["dependencies", "github-actions"]
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "groupName": "devDependencies (non-major)",
+      "automerge": true,
+      "automergeType": "branch",
+      "addLabels": ["dependencies", "dev-deps"]
+    },
+    {
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true,
+      "prPriority": -1,
+      "addLabels": ["dependencies", "major"]
+    },
+    {
+      "matchPackagePatterns": ["^@bbf-tables/"],
+      "enabled": false
+    }
+  ],
+  "prCreation": "immediate",
+  "branchPrefix": "renovate/",
+  "commitMessagePrefix": "chore(deps): ",
+  "platformAutomerge": true,
+  "automergeStrategy": "squash",
+  "assignAutomerge": true,
+  "assignees": ["@bbf-ci"],
+  "reviewersFromCodeOwners": true,
+  "reviewersSampleSize": 2,
+  "dependencyDashboard": true,
+  "dependencyDashboardTitle": "📊 Dependency Dashboard",
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 0,
+  "pruneStaleBranches": true,
+  "recreateWhen": "auto",
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security"],
+    "assignees": ["@bbf-security"]
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true,
+    "automergeType": "branch"
+  },
+  "rangeStrategy": "bump"
+}

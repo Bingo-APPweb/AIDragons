@@ -1,0 +1,16 @@
+name: "Custom CodeQL Configuration"
+disable-default-queries: false
+query-filters:
+  - include:
+      problem.severity: error
+  - include:
+      problem.severity: warning
+  - exclude:
+      id: js/redundant-assignment
+
+queries:
+  - uses: security-and-quality
+    
+extraction:
+  javascript:
+    index-tests: false

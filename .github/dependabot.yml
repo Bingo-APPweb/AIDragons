@@ -1,0 +1,39 @@
+version: 2
+updates:
+  # Keep GitHub Actions up to date
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    # Only allow updates to the GitHub Actions
+    # that are owned by actions or github
+    reviewers:
+      - "your-github-username"
+    assignees:
+      - "your-github-username"
+    labels:
+      - "dependencies"
+      - "github-actions"
+
+  # Keep npm dependencies up to date
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    # Create pull requests for version updates
+    # and label them with "dependencies"
+    labels:
+      - "dependencies"
+    # Only allow updates to direct dependencies
+    versioning-strategy: increase
+    # Group updates by dependency type
+    groups:
+      production:
+        patterns:
+          - "*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+    # Don't create more than 5 pull requests at a time
+    open-pull-requests-limit: 5
+    # Only update existing PRs when new versions are released
+    # instead of creating new ones
+    rebase-strategy: "disabled"

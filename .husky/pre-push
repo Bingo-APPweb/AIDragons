@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run build and checks before push
+npm run -s build || exit 1
+npm run -s size || exit 1
+npm run -s api:check || exit 1

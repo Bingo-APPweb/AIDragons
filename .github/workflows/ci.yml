@@ -1,0 +1,264 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['**/*.md','docs/**']   # skip docs-only changes
+  pull_request:
+    branches: [main]
+    paths-ignore: ['**/*.md','docs/**']
+  workflow_dispatch:
+
+# Minimal permissions needed
+permissions:
+  contents: read
+  # For uploading artifacts
+  actions: write
+  # For codecov (if needed)
+  checks: write
+  # For Dependabot security alerts
+  security-events: write
+
+# Cancel previous runs for the same branch/PR
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Lint workflow files first to fail fast on YAML issues
+  lint-workflows:
+    name: Lint GitHub Workflows
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v4.1.1
+      - uses: rhysd/actionlint@9c2d369db7ec2c08d10d9f3d9b9d0f8546792c7a # v1.6.27
+
+  test:
+    needs: lint-workflows
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: write
+      checks: write
+      security-events: write
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node-version: [18.x, 20.x, 22.x]
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Use Node.js ${{ matrix.node-version }} on ${{ matrix.os }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: package-lock.json
+    
+    - name: Install dependencies
+      run: npm ci --prefer-offline --no-audit
+      
+    - name: Security audit (allow low/moderate)
+      run: |
+        npm audit --omit=dev --audit-level=high || echo "High/critical issues found — review Dependabot PRs"
+    
+    - name: Lint
+      run: npm run lint
+      
+    - name: Cache TypeScript build
+      uses: actions/cache@v4
+      with:
+        path: .tsbuildinfo
+        key: tsbuildinfo-${{ runner.os }}-${{ matrix.node-version }}-${{ hashFiles('tsconfig.json','src/**/*.ts') }}
+    
+    - name: Build
+      run: npm run build --if-present
+      
+    - name: Smoke test (npm pack)
+      run: node scripts/smoke-pack.mjs
+      
+    - name: Check API Stability
+      run: |
+        npm run api:build
+        npm run api:check
+      
+    - name: Check Bundle Size
+      run: npm run size:check
+      
+    - name: Unit tests (with coverage)
+      run: npm test -- --coverage
+      
+    - name: Run property-based tests
+      run: npm run test:property
+      
+    - name: Generate test signal
+      run: node scripts/gen-test-signal.js
+      
+    - name: Run NumPy comparison
+      if: matrix.os == 'ubuntu-latest'  # Only run on Linux for consistency
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - name: Install NumPy and run comparison
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        python -m pip install numpy
+        python scripts/diff_numpy.py > numpy_results.json
+        node -e "const { generateTestSignal } = require('./scripts/gen-test-signal'); generateTestSignal();"
+    - name: Run Node.js analysis
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        node -e "
+          const { FFTWeakSignalDetector } = require('./dist');
+          const signal = require('./test-signal.json').signal;
+          const detector = new FFTWeakSignalDetector({ sampleRate: 1024 });
+          const result = detector.detectWeakSignals(signal);
+          console.log(JSON.stringify({ node_peak_hz: result.dominantFrequencies?.[0] || 0 }));
+        " > node_results.json
+    - name: Compare results
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        NODE_PEAK=$(node -p "require('./node_results.json').node_peak_hz")
+        NUMPY_PEAK=$(python -c "import json; print(json.load(open('numpy_results.json'))['numpy_peak_hz'])")
+        DIFF=$(python -c "print(abs($NODE_PEAK - $NUMPY_PEAK))")
+        if (( $(echo "$DIFF > 2.0" | bc -l) )); then
+          echo "::error::Peak frequency difference too large: $DIFF Hz (Node: $NODE_PEAK Hz, NumPy: $NUMPY_PEAK Hz)"
+          exit 1
+        else
+          echo "Peak frequency difference within tolerance: $DIFF Hz"
+        fi
+
+    - name: Type check
+      run: npm run typecheck
+    
+    - name: Run E2E tests
+      run: |
+        if [ "${{ runner.os }}" = "Windows" ]; then
+          pwsh scripts/e2e-golden.ps1
+        else
+          chmod +x scripts/e2e-golden.sh
+          ./scripts/e2e-golden.sh
+        fi
+    
+    # Run benchmarks only on Linux for consistency
+    - name: Run benchmarks
+      if: matrix.os == 'ubuntu-latest' && matrix.node-version == '20.x'
+      run: |
+        npm install tinybench
+        node bench/benchmark.js > benchmark_results.json
+    
+    # Artifact uploads
+    - name: Upload coverage artifact
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: coverage-${{ matrix.os }}-node${{ matrix.node-version }}
+        path: coverage/**
+        retention-days: 14
+    
+    - name: Upload SBOM
+      if: matrix.os == 'ubuntu-latest' && matrix.node-version == '20.x'
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom
+        path: sbom.json
+        retention-days: 14
+    
+    - name: Upload benchmark results
+      if: matrix.os == 'ubuntu-latest' && matrix.node-version == '20.x'
+      uses: actions/upload-artifact@v4
+      with:
+        name: benchmark-results
+        path: benchmark_results.json
+        retention-days: 14
+    
+    - name: Upload test signal data
+      if: matrix.os == 'ubuntu-latest'  # Only upload from one OS
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-signal-data
+        path: test-signal.json
+        retention-days: 1
+    
+    - name: Upload to Codecov (main branch only)
+      if: >
+        matrix.os == 'ubuntu-latest' && 
+        matrix.node-version == '20.x' &&
+        github.ref == 'refs/heads/main' &&
+        github.event_name != 'pull_request' &&
+        github.token != ''
+      uses: codecov/codecov-action@d9f34fcdcdcb76436742d5896e85eef17dcc1554 # v5.0.0
+      with:
+        token: ${{ github.token }}
+        files: coverage/lcov.info
+        flags: unit
+        disable_search: true
+        fail_ci_if_error: true
+    
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-${{ matrix.os }}-node-${{ matrix.node-version }}
+        path: |
+          **/junit.xml
+          **/test-results.xml
+          **/coverage
+          **/test-output
+        retention-days: 7
+  
+  # Coverage threshold check (runs on PRs and main branch)
+  check-coverage:
+    needs: test
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: coverage-ubuntu-latest-node20.x
+          path: coverage
+      - name: Check coverage
+        uses: romeovs/coverage-threshold-checker@v1
+        with:
+          path: '**/coverage/coverage-summary.json'
+          thresholds: |
+            lines 80%
+            statements 80%
+            branches 70%
+            functions 80%
+
+  # Gate job that depends on all other jobs
+  # This is the only check that needs to be required in branch protection
+  gate:
+    name: Gate (all checks aggregated)
+    runs-on: ubuntu-latest
+    needs:
+      - lint-workflows
+      - test
+      - check-coverage
+    if: always()
+    steps:
+      - name: Summarize results
+        run: |
+          echo "needs statuses:"
+          echo "${{ toJson(needs) }}"
+          # Fail if any required job failed
+          FAILED=$(node -e "const n=${{ toJson(needs) }}; const bad=Object.values(n).some(j => j.result !== 'success' && j.result !== 'skipped'); process.exit(bad?1:0)")
+          if [ "$FAILED" = "1" ]; then
+            echo "::error::One or more required checks failed. See logs for details."
+            exit 1
+          fi

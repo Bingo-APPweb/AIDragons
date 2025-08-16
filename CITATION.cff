@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+title: Natural Prediction System
+message: If you use this software in your research, please cite it using the following metadata
+authors:
+  - family-names: Correa
+    given-names: Jober Mögele
+    orcid: 0000-0000-0000-0000  # Replace with actual ORCID if available
+version: 1.0.0
+date-released: 2025-08-15
+license: MIT
+repository-code: https://github.com/yourusername/bbf-tables
+type: software
+keywords:
+  - chaos-theory
+  - signal-processing
+  - time-series-analysis
+  - prediction
+  - fft
+  - lyapunov-exponent
+  - standing-waves
+  - evolutionary-algorithms
+  - typescript
+  - nodejs

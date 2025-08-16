@@ -1,0 +1,28 @@
+# Donos padrões
+*                          @bbf-core
+
+# Núcleo/Lib
+src/**                     @bbf-core
+
+# Segurança & workflows
+.github/**                 @bbf-ci @bbf-security
+security/**                @bbf-security
+
+# Documentação
+docs/**                    @bbf-docs
+README.md                  @bbf-docs
+
+# Configuração sensível
+package.json               @bbf-core @bbf-ci
+tsconfig*.json             @bbf-core
+
+# Scripts e automação
+scripts/**                 @bbf-ci @bbf-core
+bench/**                   @bbf-ci @bbf-core
+.devcontainer/**           @bbf-ci
+Dockerfile                 @bbf-ci
+
+# Segurança extra
+.trivy/**                  @bbf-security
+api-extractor.json         @bbf-core
+size-limit*                @bbf-ci @bbf-core
